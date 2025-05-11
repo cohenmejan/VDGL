@@ -16,10 +16,10 @@ public:
 
 		// Holds success or error status info for functions
 		struct Status {
-			bool success = false;
+			const bool success = false;
 			const char* message = nullptr;
 
-			inline Status(bool success, const char* message);
+			inline Status(const bool success, const char* message);
 
 			constexpr operator bool() const;
 			constexpr operator const char* () const;
@@ -65,7 +65,7 @@ public:
 ////// VDGL::Status
 //////
 
-inline VDGL::Status::Status(bool success, const char* message) :
+inline VDGL::Status::Status(const bool success, const char* message) :
 	success(success),
 	message(message) {}
 

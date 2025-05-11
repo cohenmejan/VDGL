@@ -19,7 +19,7 @@ public:
 			const bool success = false;
 			const char* message = nullptr;
 
-			inline Status(const bool success, const char* message);
+			constexpr Status(const bool success, const char* message);
 
 			constexpr operator bool() const;
 			constexpr operator const char* () const;
@@ -65,7 +65,7 @@ public:
 ////// VDGL::Status
 //////
 
-inline VDGL::Status::Status(const bool success, const char* message) :
+constexpr VDGL::Status::Status(const bool success, const char* message) :
 	success(success),
 	message(message) {}
 

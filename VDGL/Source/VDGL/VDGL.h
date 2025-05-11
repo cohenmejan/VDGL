@@ -1,5 +1,12 @@
 #pragma once
 
+#include "Core.h"
+#include "GLDefinitions.h"
+
+#if defined(VDGL_PLATFORM_WINDOWS)
+#	include "WGLDefinitions.h"
+#endif
+
 class VDGL final {
 public:
 

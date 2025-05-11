@@ -1,11 +1,10 @@
 #pragma once
 
-#include "VDGL/Platform.h"
+#include "Core.h"
 #ifdef VDGL_PLATFORM_WINDOWS
 
 #include <Windows.h>
-
-#include "VDGL/VDGL_FN.h"
+#include "Core.h"
 
 #define VDGL_WGL_FN(returnType, name, ...) VDGL_FN(returnType, WINAPI*, name, __VA_ARGS__)
 

@@ -1,4 +1,4 @@
-#include "Core.h"
+#include "VDGL.h"
 #include "GLDefinitions.h"
 
 void VDGL::LoadGLFunctions() {

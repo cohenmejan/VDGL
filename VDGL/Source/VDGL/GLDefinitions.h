@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VDGL_FN.h"
+#include "Core.h"
 #define VDGL_GL_FN(returnType, name, ...) VDGL_FN(returnType, *, name, __VA_ARGS__)
 
 //////

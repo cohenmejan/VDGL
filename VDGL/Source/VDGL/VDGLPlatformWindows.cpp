@@ -1,6 +1,7 @@
-#include "VDGLPlatformWindows.h"
+#include "Core.h"
 #ifdef VDGL_PLATFORM_WINDOWS
 
+#include "VDGL.h"
 #include "WGLDefinitions.h"
 
 static inline HMODULE sGLLib = nullptr;
@@ -8,7 +9,7 @@ static inline HWND sWindowHandle = nullptr;
 static inline HDC sHDC = nullptr;
 static inline HGLRC sHRC = nullptr;
 static inline HINSTANCE sInstance = nullptr;
-static inline const wchar_t* sWindowClassName = L"VDGLInitWindowClass";
+static inline const VDGLChar* sWindowClassName = VDGLString("VDGLInitWindowClass");
 
 VDGL::Status VDGL::Initialize() {
 
@@ -19,7 +20,7 @@ VDGL::Status VDGL::Initialize() {
 	}
 
 	if(!sGLLib) {
-		sGLLib = LoadLibraryW(L"opengl32.dll");
+		sGLLib = LoadLibrary(VDGLString("opengl32.dll"));
 		
 		if(!sGLLib) {
 			return Status(false, "Failed to load GL library");
@@ -28,23 +29,23 @@ VDGL::Status VDGL::Initialize() {
 
 	// Window class
 
-	sInstance = GetModuleHandleW(nullptr);
+	sInstance = GetModuleHandle(nullptr);
 
-	WNDCLASSW windowClass = {};
-	windowClass.lpfnWndProc = DefWindowProcW;
+	WNDCLASS windowClass = {};
+	windowClass.lpfnWndProc = DefWindowProc;
 	windowClass.hInstance = sInstance;
 	windowClass.lpszClassName = sWindowClassName;
 
-	if(RegisterClassW(&windowClass) == 0) {
+	if(RegisterClass(&windowClass) == 0) {
 		return Status(false, "Failed to register VDGLInitWindowClass");
 	}
 
 	// Window
 
-	sWindowHandle = CreateWindowExW(
+	sWindowHandle = CreateWindowEx(
 		0,
 		sWindowClassName,
-		L"VDGLInitWindow",
+		VDGLString("VDGLInitWindow"),
 		WS_OVERLAPPED,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -57,7 +58,7 @@ VDGL::Status VDGL::Initialize() {
 	);
 
 	if(!sWindowHandle) {
-		UnregisterClassW(sWindowClassName, sInstance);
+		UnregisterClass(sWindowClassName, sInstance);
 		Close();
 
 		return Status(false, "Failed to create VDGLInitWindow");
@@ -69,7 +70,7 @@ VDGL::Status VDGL::Initialize() {
 
 	if(!sHDC) {
 		DestroyWindow(sWindowHandle);
-		UnregisterClassW(sWindowClassName, sInstance);
+		UnregisterClass(sWindowClassName, sInstance);
 		Close();
 
 		return Status(false, "Failed to get device context");
@@ -82,7 +83,7 @@ VDGL::Status VDGL::Initialize() {
 	if(!SetPixelFormat(sHDC, ChoosePixelFormat(sHDC, &pfd), &pfd)) {
 		ReleaseDC(sWindowHandle, sHDC);
 		DestroyWindow(sWindowHandle);
-		UnregisterClassW(sWindowClassName, sInstance);
+		UnregisterClass(sWindowClassName, sInstance);
 		Close();
 
 		return Status(false, "Failed to set pixel format");
@@ -96,7 +97,7 @@ VDGL::Status VDGL::Initialize() {
 		wglDeleteContext(sHRC);
 		ReleaseDC(sWindowHandle, sHDC);
 		DestroyWindow(sWindowHandle);
-		UnregisterClassW(sWindowClassName, sInstance);
+		UnregisterClass(sWindowClassName, sInstance);
 		Close();
 
 		return Status(false, "Failed to set temporary context");
@@ -112,7 +113,7 @@ VDGL::Status VDGL::Initialize() {
 	wglDeleteContext(sHRC);
 	ReleaseDC(sWindowHandle, sHDC);
 	DestroyWindow(sWindowHandle);
-	UnregisterClassW(sWindowClassName, sInstance);
+	UnregisterClass(sWindowClassName, sInstance);
 
 	return Status(true, "GL initialized");
 }

@@ -1,0 +1,160 @@
+#include "VDGLPlatformWindows.h"
+#ifdef VDGL_PLATFORM_WINDOWS
+
+#include "WGLDefinitions.h"
+
+static inline HMODULE sGLLib = nullptr;
+static inline HWND sWindowHandle = nullptr;
+static inline HDC sHDC = nullptr;
+static inline HGLRC sHRC = nullptr;
+static inline HINSTANCE sInstance = nullptr;
+static inline const wchar_t* sWindowClassName = L"VDGLInitWindowClass";
+
+VDGL::Status VDGL::Initialize() {
+
+	// OpenGL library
+
+	if(sGLLib) {
+		Close();
+	}
+
+	if(!sGLLib) {
+		sGLLib = LoadLibraryW(L"opengl32.dll");
+		
+		if(!sGLLib) {
+			return Status(false, "Failed to load GL library");
+		}
+	}
+
+	// Window class
+
+	sInstance = GetModuleHandleW(nullptr);
+
+	WNDCLASSW windowClass = {};
+	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.hInstance = sInstance;
+	windowClass.lpszClassName = sWindowClassName;
+
+	if(RegisterClassW(&windowClass) == 0) {
+		return Status(false, "Failed to register VDGLInitWindowClass");
+	}
+
+	// Window
+
+	sWindowHandle = CreateWindowExW(
+		0,
+		sWindowClassName,
+		L"VDGLInitWindow",
+		WS_OVERLAPPED,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		nullptr,
+		nullptr,
+		sInstance,
+		nullptr
+	);
+
+	if(!sWindowHandle) {
+		UnregisterClassW(sWindowClassName, sInstance);
+		Close();
+
+		return Status(false, "Failed to create VDGLInitWindow");
+	}
+
+	// Device context
+
+	sHDC = GetDC(sWindowHandle);
+
+	if(!sHDC) {
+		DestroyWindow(sWindowHandle);
+		UnregisterClassW(sWindowClassName, sInstance);
+		Close();
+
+		return Status(false, "Failed to get device context");
+	}
+
+	// Pixel format
+
+	PIXELFORMATDESCRIPTOR pfd = {};
+
+	if(!SetPixelFormat(sHDC, ChoosePixelFormat(sHDC, &pfd), &pfd)) {
+		ReleaseDC(sWindowHandle, sHDC);
+		DestroyWindow(sWindowHandle);
+		UnregisterClassW(sWindowClassName, sInstance);
+		Close();
+
+		return Status(false, "Failed to set pixel format");
+	}
+
+	// Context
+
+	sHRC = wglCreateContext(sHDC);
+
+	if(!wglMakeCurrent(sHDC, sHRC)) {
+		wglDeleteContext(sHRC);
+		ReleaseDC(sWindowHandle, sHDC);
+		DestroyWindow(sWindowHandle);
+		UnregisterClassW(sWindowClassName, sInstance);
+		Close();
+
+		return Status(false, "Failed to set temporary context");
+	}
+
+	// Load
+
+	LoadFunctions();
+
+	// Delete temporary window
+
+	wglMakeCurrent(nullptr, nullptr);
+	wglDeleteContext(sHRC);
+	ReleaseDC(sWindowHandle, sHDC);
+	DestroyWindow(sWindowHandle);
+	UnregisterClassW(sWindowClassName, sInstance);
+
+	return Status(true, "GL initialized");
+}
+
+VDGL::Status VDGL::Close() {
+	UnloadFunctions();
+
+	if(sGLLib) {
+		FreeLibrary(sGLLib);
+	}
+
+	sGLLib = nullptr;
+	sWindowHandle = nullptr;
+	sHDC = nullptr;
+	sHRC = nullptr;
+	sInstance = nullptr;
+
+	return Status(true, "GL closed");
+}
+
+void* VDGL::GetFunctionPointer(const char* name) {
+	if(!sGLLib) return nullptr;
+
+	void* result = (void*)wglGetProcAddress(name);
+
+	if(!result || (result == (void*)1) || (result == (void*)2) || (result == (void*)3) || (result == (void*)-1)) {
+		result = (void*)GetProcAddress(sGLLib, name);
+	}
+
+	return result;
+}
+
+void VDGL::LoadPlatformFunctions() {
+	VDGL_LOAD_FN(wglCreateContextAttribsARB);
+	VDGL_LOAD_FN(wglChoosePixelFormatARB);
+	VDGL_LOAD_FN(wglSwapIntervalEXT);
+}
+
+void VDGL::UnloadPlatformFunctions() {
+	wglCreateContextAttribsARB = nullptr;
+	wglChoosePixelFormatARB = nullptr;
+	wglSwapIntervalEXT = nullptr;
+}
+
+#endif // VDGL_PLATFORM_WINDOWS

@@ -4,12 +4,12 @@
 #include "VDGL.h"
 #include "WGLDefinitions.h"
 
-static inline HMODULE sGLLib = nullptr;
-static inline HWND sWindowHandle = nullptr;
-static inline HDC sHDC = nullptr;
-static inline HGLRC sHRC = nullptr;
-static inline HINSTANCE sInstance = nullptr;
-static inline const VDGLChar* sWindowClassName = VDGLString("VDGLInitWindowClass");
+static HMODULE sGLLib = nullptr;
+static HWND sWindowHandle = nullptr;
+static HDC sHDC = nullptr;
+static HGLRC sHRC = nullptr;
+static HINSTANCE sInstance = nullptr;
+static const VDGLChar* sWindowClassName = VDGLString("VDGLInitWindowClass");
 
 VDGL::Status VDGL::Initialize() {
 
@@ -21,7 +21,7 @@ VDGL::Status VDGL::Initialize() {
 
 	if(!sGLLib) {
 		sGLLib = LoadLibrary(VDGLString("opengl32.dll"));
-		
+
 		if(!sGLLib) {
 			return Status(false, "Failed to load GL library");
 		}

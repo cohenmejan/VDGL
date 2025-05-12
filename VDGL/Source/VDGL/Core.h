@@ -18,7 +18,16 @@ using VDGLChar = wchar_t;
 using VDGLChar = char;
 #endif
 
-#define VDGL_FN(returnType, call, name, ...) using PFN##name = returnType (call) (__VA_ARGS__);\
-inline PFN##name name = nullptr
+#if defined(_MSC_VER)
+#	define FORCE_INLINE __forceinline
+#elif defined(__GNUC__) || defined(__clang__)
+#	define FORCE_INLINE inline __attribute__((always_inline))
+#else
+#	define FORCE_INLINE inline
+#endif
 
-#define VDGL_LOAD_FN(name) name = (PFN##name)GetFunctionPointer(#name)
+#define VDGL_FN(returnType, call, name, parameters, arguments) using PFN##name = returnType (call*) parameters;\
+inline PFN##name _vdgl_##name = nullptr;\
+FORCE_INLINE returnType call name parameters { return _vdgl_##name arguments; }
+
+#define VDGL_LOAD_FN(name) _vdgl_##name = (PFN##name)GetFunctionPointer(#name)

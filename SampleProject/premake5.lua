@@ -1,5 +1,5 @@
-project "VDGL"
-	kind "StaticLib"
+project "SampleProject"
+	kind "ConsoleApp"
 	language "C++"
     cppdialect "C++20"
 	cdialect "C17"
@@ -14,7 +14,8 @@ project "VDGL"
 	}
 
 	includedirs {
-		"Source"
+		"Source",
+		ProjectDirectories.VDGL .. "/Source"
 	}
 
 	files {
@@ -22,7 +23,12 @@ project "VDGL"
 		"**.cpp",
 	}
 
+	dependson {
+		"VDGL"
+	}
+
 	links {
+		"VDGL",
 		"opengl32.lib"
 	}
 
